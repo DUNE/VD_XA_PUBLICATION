@@ -1,3 +1,7 @@
+# Coustom
+dune_plot_style*
+images/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
