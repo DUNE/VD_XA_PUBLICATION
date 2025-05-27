@@ -12,4 +12,5 @@ else
     cd dune_plot_style
     # Install the dune_plot_style package
     python3 -m pip install .
+    cd ..
 fi
