@@ -1,0 +1,6 @@
+"data":
+    "OV": [3.5, 4.5, 6.0, 7.0]
+    "CIEMAT_PDE": [3.2, 3.7, null, 4.7]
+    "CIEMAT_err": [0.2, 0.3, null, 0.3]
+    "INFN_PDE": [null, 3.1, 3.6, 4.0]
+    "INFN_err": [null, 0.5, 0.5, 0.6]
