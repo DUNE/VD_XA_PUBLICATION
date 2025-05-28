@@ -25,8 +25,8 @@ def fit_logarithmic_regression(x, y, w=None):
     x = x[mask]
     y = y[mask]
     log_x = np.log(x)
-    coeffs = np.polyfit(log_x, y, 1, w=w[mask] if w is not None else None)
-    return coeffs
+    coeffs, cov = np.polyfit(log_x, y, 1, cov=True, w=w[mask] if w is not None else None)
+    return coeffs, np.sqrt(np.diag(cov))
 
 # Create -d flag to run this script with terminal output
 parser = argparse.ArgumentParser(description='Process some integers.')
@@ -34,7 +34,7 @@ parser.add_argument('-d', '--debug', action='store_true', help='Enable debug out
 args = parser.parse_args()
 
 # Step 1: Load data from YAML file
-with open('data/PDE.yml', 'r') as file:
+with open('data/PDE_fitted.yml', 'r') as file:
     data = yaml.safe_load(file)
     if args.debug:
         print("Loaded data from YAML file:")
@@ -58,10 +58,10 @@ plt.errorbar(df["OV"], df["INFN_PDE"], yerr=df["INFN_err"], fmt='o', label='INFN
 plt.errorbar(df["OV"], df["Combined"], yerr=df["Combined_err"], fmt='o', label='Combined PDE')
 
 # Fit once with a polynomial line that goes through the origin
-x = np.concatenate((df["OV"].values, df["OV"].values))
-y = np.concatenate((df["CIEMAT_PDE"].fillna(np.nan).values, df["INFN_PDE"].fillna(np.nan).values))
-weights = np.concatenate((1 / df["CIEMAT_err"].fillna(np.nan).values**2, 1 / df["INFN_err"].fillna(np.nan).values**2))
-coeffs = fit_logarithmic_regression(x, y, w=weights)
+x = df["OV"].values
+y = df["Combined"].fillna(np.nan).values
+weights = 1 / df["Combined_err"].fillna(np.nan).values**2
+coeffs, errors = fit_logarithmic_regression(x, y, w=weights)
 
 # Generate fitted line
 x_fit = np.linspace(1e-10, 8, 100)
@@ -70,21 +70,21 @@ if args.debug:
     print("Coefficients for fit", coeffs)
 plt.plot(x_fit, y_fit, label=f'Combined Fit', linestyle='--')
 # Add error band to the fitted line
-y_fit_upper = y_fit + np.sqrt(df["Combined_err"].mean())  # Upper bound
-y_fit_lower = y_fit - np.sqrt(df["Combined_err"].mean())  # Lower bound
+y_fit_upper = (coeffs[0] + errors[0]) * np.log(x_fit) + (coeffs[1] + errors[1])  # Upper bound
+y_fit_lower = (coeffs[0] - errors[0]) * np.log(x_fit) + (coeffs[1] - errors[1])  # Lower bound
 plt.fill_between(x_fit, y_fit_lower, y_fit_upper, alpha=0.2)
 
 # Force the fit to go through the origin by adding a point at (0, 0) with zero error
 x = np.concatenate(([1e-1], x))
 y = np.concatenate(([1e-1], y))
 weights = np.concatenate(([1e1], weights))  # Add weight for the origin point
-coeffs = fit_logarithmic_regression(x, y, w=weights)
+coeffs, errors = fit_logarithmic_regression(x, y, w=weights)
 # Generate fitted line again
 y_fit = coeffs[0] * np.log(x_fit) + coeffs[1]
 plt.plot(x_fit, y_fit, label=f'Combined Origin Fit', linestyle=':')
 # Add error band to the fitted line through origin
-y_fit_upper = y_fit + np.sqrt(df["Combined_err"].mean())  # Upper bound
-y_fit_lower = y_fit - np.sqrt(df["Combined_err"].mean())  # Lower bound
+y_fit_upper = (coeffs[0] + errors[0]) * np.log(x_fit) + (coeffs[1] + errors[1])  # Upper bound
+y_fit_lower = (coeffs[0] - errors[0]) * np.log(x_fit) + (coeffs[1] - errors[1])  # Lower bound
 plt.fill_between(x_fit, y_fit_lower, y_fit_upper, alpha=0.2)
 
 plt.xlabel('Overvoltage (V)')
