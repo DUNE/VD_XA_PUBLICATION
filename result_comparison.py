@@ -5,6 +5,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import dunestyle.matplotlib as dunestyle
+from cycler import cycler
+
+# Get colors from dunestyle
+colors = ['#000000', '#D55E00', '#56B4E9', '#E69F00', '#009E73', '#CC79A7', '#0072B2', '#F0E442']
 
 def fit_logarithmic_regression(x, y, w=None):
     # Ignore values where y is NaN
@@ -46,7 +50,7 @@ plt.errorbar(df["OV"], df["CIEMAT_PDE"], yerr=df["CIEMAT_err"], fmt='o', label='
 plt.errorbar(df["OV"], df["INFN_PDE"], yerr=df["INFN_err"], fmt='o', label='INFN Naples')
 
 # Step 3: Fit data with regression
-for institute, institute_label in zip(["CIEMAT", "INFN"], ["CIEMAT", "INFN Naples"]):
+for idx, (institute, institute_label) in enumerate(zip(["CIEMAT", "INFN"], ["CIEMAT", "INFN Naples"])):
     # Fit once with a polynomial line that goes through the origin
     x = df["OV"].values
     y = df[f"{institute}_PDE"].fillna(np.nan).values
@@ -58,7 +62,7 @@ for institute, institute_label in zip(["CIEMAT", "INFN"], ["CIEMAT", "INFN Naple
     y_fit = coeffs[0] * np.log(x_fit) + coeffs[1]
     if args.debug:
         print(f"\nCoefficients for {institute_label} fit", coeffs, "with error", errors)
-    plt.plot(x_fit, y_fit, label=f'Fit {institute_label}', linestyle='--')
+    plt.plot(x_fit, y_fit, label=f'Fit {institute_label}', linestyle='--', color = colors[idx])
     # Add error band to the fitted line
     y_fit_upper = (coeffs[0] + errors[0]) * np.log(x_fit) + (coeffs[1] + errors[1])  # Upper bound
     y_fit_lower = (coeffs[0] - errors[0]) * np.log(x_fit) + (coeffs[1] - errors[1])  # Lower bound
