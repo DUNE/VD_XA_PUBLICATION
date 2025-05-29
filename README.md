@@ -17,4 +17,4 @@ To run the scripts, you can use:
 python3 run_all.py
 ```
 
-For further support please contact <sergio.manthey@ciemat.es> or <gabrielbotogoske@gmail.com>
+For further support please contact [sergio.manthey@ciemat.es](mailto:sergio.manthey@ciemat.es) or [gabrielbotogoske@gmail.com](mailto:gabrielbotogoske@gmail.com)
