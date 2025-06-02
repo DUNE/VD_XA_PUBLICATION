@@ -8,7 +8,7 @@ import dunestyle.matplotlib as dunestyle
 from cycler import cycler
 
 # Get colors from dunestyle
-colors = ['#000000', '#D55E00', '#56B4E9', '#E69F00', '#009E73', '#CC79A7', '#0072B2', '#F0E442']
+# colors = ['#000000', '#D55E00', '#56B4E9', '#E69F00', '#009E73', '#CC79A7', '#0072B2', '#F0E442']
 
 def fit_logarithmic_regression(x, y, w=None):
     # Ignore values where y is NaN
@@ -62,7 +62,7 @@ for idx, (institute, institute_label) in enumerate(zip(["CIEMAT", "INFN"], ["CIE
     y_fit = coeffs[0] * np.log(x_fit) + coeffs[1]
     if args.debug:
         print(f"\nCoefficients for {institute_label} fit", coeffs, "with error", errors)
-    plt.plot(x_fit, y_fit, label=f'Fit {institute_label}', linestyle='--', color = colors[idx])
+    plt.plot(x_fit, y_fit, label=f'Fit {institute_label}', linestyle='--', color = f"C{idx}")
     # Add error band to the fitted line
     y_fit_upper = (coeffs[0] + errors[0]) * np.log(x_fit) + (coeffs[1] + errors[1])  # Upper bound
     y_fit_lower = (coeffs[0] - errors[0]) * np.log(x_fit) + (coeffs[1] - errors[1])  # Lower bound
