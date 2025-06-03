@@ -57,6 +57,6 @@ if not os.path.exists('images'):
 plt.savefig(f'images/WVF_RUN{args.run}_CH{args.channel}_EVENT{args.event}.png', dpi=300)
 # Step 6: Show the plot
 if args.debug:
-    print("Plot saved as 'data_plot.png'")
+    print("Plot saved as 'images/WVF_RUN{args.run}_CH{args.channel}_EVENT{args.event}.png'")
 plt.show()
 # Step 7: Apply Dunestyle
