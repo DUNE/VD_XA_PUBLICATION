@@ -58,7 +58,7 @@ df["Combined_err"] = df["Combined_err"].fillna(df["CIEMAT_err"]).fillna(df["INFN
 # Step 4: Plot the data
 plt.errorbar(df["OV"], df["CIEMAT_PDE"], yerr=df["CIEMAT_err"], fmt='o', label='CIEMAT')
 plt.errorbar(df["OV"], df["INFN_PDE"], yerr=df["INFN_err"], fmt='o', label='INFN Naples')
-plt.errorbar(df["OV"], df["Combined"], yerr=df["Combined_err"], fmt='o', label='Combined PDE')
+plt.errorbar(df["OV"], df["Combined"], yerr=df["Combined_err"], fmt='o', label='Combined')
 
 # Fit once with a polynomial line that goes through the origin
 x = df["OV"].values
@@ -71,24 +71,24 @@ x_fit = np.linspace(1e-10, 8, 100)
 y_fit = coeffs[0] * np.log(x_fit) + coeffs[1]
 if args.debug:
     print("Coefficients for fit", coeffs)
-plt.plot(x_fit, y_fit, label=f'Combined Fit', linestyle='--', color=f"C2")
+plt.plot(x_fit, y_fit, label=f'Fit Combined', linestyle='--', color=f"C2")
 # Add error band to the fitted line
 y_fit_upper = (coeffs[0] + errors[0]) * np.log(x_fit) + (coeffs[1] + errors[1])  # Upper bound
 y_fit_lower = (coeffs[0] - errors[0]) * np.log(x_fit) + (coeffs[1] - errors[1])  # Lower bound
-plt.fill_between(x_fit, y_fit_lower, y_fit_upper, alpha=0.2, color=f"C2")
+plt.fill_between(x_fit, y_fit_lower, y_fit_upper, alpha=0.2, color=f"C2", edgecolor='none')
 
-# Force the fit to go through the origin by adding a point at (0, 0) with zero error
-x = np.concatenate(([1e-1], x))
-y = np.concatenate(([1e-1], y))
-weights = np.concatenate(([1e1], weights))  # Add weight for the origin point
-coeffs, errors = fit_logarithmic_regression(x, y, w=weights)
-# Generate fitted line again
-y_fit = coeffs[0] * np.log(x_fit) + coeffs[1]
-plt.plot(x_fit, y_fit, label=f'Combined Origin Fit', linestyle=':', color=f"C2")
-# Add error band to the fitted line through origin
-y_fit_upper = (coeffs[0] + errors[0]) * np.log(x_fit) + (coeffs[1] + errors[1])  # Upper bound
-y_fit_lower = (coeffs[0] - errors[0]) * np.log(x_fit) + (coeffs[1] - errors[1])  # Lower bound
-plt.fill_between(x_fit, y_fit_lower, y_fit_upper, alpha=0.2, color = f"C2")
+# # Force the fit to go through the origin by adding a point at (0, 0) with zero error
+# x = np.concatenate(([1e-1], x))
+# y = np.concatenate(([1e-1], y))
+# weights = np.concatenate(([1e1], weights))  # Add weight for the origin point
+# coeffs, errors = fit_logarithmic_regression(x, y, w=weights)
+# # Generate fitted line again
+# y_fit = coeffs[0] * np.log(x_fit) + coeffs[1]
+# plt.plot(x_fit, y_fit, label=f'Combined Origin Fit', linestyle=':', color=f"C2")
+# # Add error band to the fitted line through origin
+# y_fit_upper = (coeffs[0] + errors[0]) * np.log(x_fit) + (coeffs[1] + errors[1])  # Upper bound
+# y_fit_lower = (coeffs[0] - errors[0]) * np.log(x_fit) + (coeffs[1] - errors[1])  # Lower bound
+# plt.fill_between(x_fit, y_fit_lower, y_fit_upper, alpha=0.2, color = f"C2", edgecolor='none')
 
 # Export the data to a new YAML file
 output_data = {
