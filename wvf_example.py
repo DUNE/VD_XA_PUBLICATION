@@ -37,7 +37,7 @@ y = y - pretrigger_mean  # Subtract mean of pretrigger region
 
 # Step 5: Plot the data
 plt.hist(1e-3*x, bins=len(x), weights=y, label='XA Signal', histtype='step', zorder=0)
-plt.axvline(x=1e-3*petrigger_lim, color=f"C1", label='Pretrigger Limit', zorder=3)
+plt.axvline(x=1e-3*petrigger_lim, color=f"C1", label='Integration Limits', zorder=3)
 plt.axvline(x=2 + 1e-3*petrigger_lim, linestyle='--', color=f"C1", zorder=3)
 plt.axhline(y=0, color='C2', label=r'Baseline $\pm$ STD', zorder=1)
 plt.axhline(y=pretrigger_STD, linestyle='--', color='C2', zorder=1)
