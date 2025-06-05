@@ -66,7 +66,7 @@ for idx, (institute, institute_label) in enumerate(zip(["CIEMAT", "INFN"], ["CIE
     # Add error band to the fitted line
     y_fit_upper = (coeffs[0] + errors[0]) * np.log(x_fit) + (coeffs[1] + errors[1])  # Upper bound
     y_fit_lower = (coeffs[0] - errors[0]) * np.log(x_fit) + (coeffs[1] - errors[1])  # Lower bound
-    plt.fill_between(x_fit, y_fit_lower, y_fit_upper, alpha=0.2)
+    plt.fill_between(x_fit, y_fit_lower, y_fit_upper, alpha=0.2, edgecolor='none')
     # Add to data the extrapolated value at the OV where the original value is nan
     # Find where the original value is NaN
     df.loc[df[f"{institute}_PDE"].isna(), f"{institute}_err"] = np.sqrt(errors[0]**2 + errors[1]**2)  # Set error to the fit error

@@ -47,10 +47,11 @@ for institution, channel in product(args.institution, args.channel):
     subset = data[data['Name'] == args.name]
     x = subset['OV'].values
     y = subset['Gain'].values
+    plt.scatter(x, y, color="C0" if institution == "ciemat" else "C1", marker='o' if channel == 0 else 'x')
+    
     x_new = np.linspace(0, 10, 300)
     y_new = interpolate.interp1d(x, y, kind='linear', bounds_error=False, fill_value='extrapolate')
     plt.plot(x_new, y_new(x_new), label=f"{institution} ch{channel}", linewidth=2, ls=':' if channel == 0 else '--', color="C0" if institution == "ciemat" else "C1")
-    plt.scatter(x, y, color="C0" if institution == "ciemat" else "C1", marker='o' if channel == 0 else 'x')
 
 plt.xlabel('Overvoltage (V)')
 plt.xlim(0, 10)
