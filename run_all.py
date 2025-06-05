@@ -6,6 +6,8 @@ def run_script(script_name):
 if __name__ == "__main__":
     scripts = [
         "wvf_example.py",
+        "sipm_fit.py -c 4",
+        "sipm_fit.py -c 4 5",
         "xa_calibration.py",
         "result_comparison.py",
         "result_combined.py",
