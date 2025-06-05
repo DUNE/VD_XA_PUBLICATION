@@ -1,12 +1,12 @@
 # Check if .venv file already exists
 if [ -d ".venv" ]; then
-    echo "Virtual environment already exists."
+    echo "-> virtual environment already exists."
     source .venv/bin/activate
 else
-    echo "Creating virtual environment..."
+    echo "creating virtual environment..."
     python3 -m venv .venv
     source .venv/bin/activate
-    echo "Installing dependencies..."
+    echo "installing dependencies..."
     pip install -r requirements.txt
-    echo "Virtual environment created and dependencies installed." 
+    echo "-> virtual environment created and dependencies installed." 
 fi
