@@ -9,6 +9,11 @@ if __name__ == "__main__":
         "sipm_fit.py -c 4",
         "sipm_fit.py -c 4 5",
         "xa_calibration.py",
+        "xa_calibration.py -e -c 0",
+        "xa_calibration.py -e -c 1",
+        "xa_calibration_ratio.py",
+        "xa_calibration_ratio.py -e -c 0",
+        "xa_calibration_ratio.py -e -c 1",
         "result_comparison.py",
         "result_combined.py",
     ]

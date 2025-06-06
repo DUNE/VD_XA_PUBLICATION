@@ -4,14 +4,19 @@ import numpy as np
 import pandas as pd
 from itertools import product
 from scipy import interpolate
+from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import dunestyle.matplotlib as dunestyle
 
+# Define a fitting function (e.g., linear)
+def fitting_function(x, a, b):
+    return a * x + b
+
 # Create -d flag to run this script with terminal output
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('-c', '--channel', type=list, help='Channel numbers', default=[0,1])
-parser.add_argument('-i', '--institution', type=list, help='Institution names', default=["Ciemat", "INFN Naples"])
 parser.add_argument('-n', '--name', type=str, help='XA name', default="DF-XA")
+parser.add_argument('-i', '--institution', type=list, help='Institution names', default=["Ciemat", "INFN Naples"])
+parser.add_argument('-c', '--channel', type=list, help='Channel numbers', default=[0,1])
 parser.add_argument('-e', '--exclusive', action='store_true', help='Include or exclude name in the plot')
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 args = parser.parse_args()
@@ -59,24 +64,29 @@ for institution, channel in product(args.institution, args.channel):
         if len(selection['Name'].unique()) > 1:
             label = f"{institution} {name}"
         
-        subset = selection[selection['Name'] == name]
+        subset = data[data['Name'] == name]
         x = subset['OV'].values
         dx = 0.02 * subset['OV'].values
-        y = subset['Gain'].values
-        dy = subset['DGain'].values
+        y = subset['Gain'].values / subset['OV'].values
+        dy = subset['DGain'].values / subset['OV'].values
+        # Add scatter with error bars
         plt.errorbar(x, y, xerr=dx, yerr=dy, ls='none', mfc='w' if channel == 0 else f'C{idx}' if institution == "Ciemat" else f"C{idx+1}", color=f"C{idx}" if institution == "Ciemat" else f"C{idx+1}", marker='o', label=label)
+        # Perform the fit
+        params, _ = curve_fit(fitting_function, x, y)
 
-        x_new = np.linspace(0, 10, 100)
-        y_new = interpolate.interp1d(x, y, kind='linear', bounds_error=False, fill_value='extrapolate')
-        plt.plot(x_new, y_new(x_new), ls=':' if channel == 0 else '--', color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}")
+        # Generate new x values for the fit line
+        x_new = np.linspace(1, 10, 90)
+        y_fit = fitting_function(x_new, *params)
+
+        # Plot the fit line
+        plt.plot(x_new, y_fit, linewidth=2, ls=':' if channel == 0 else '--', color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}")
 
 dunestyle.Preliminary(x=0.02, fontsize="xx-large")
+plt.ticklabel_format(axis='y', style='scientific', scilimits=(0,0))
 plt.xlabel('Overvoltage (V)')
-plt.xlim(0, 10)
-# plt.xscale('log')
-plt.ylabel('Gain')
-plt.ylim(0, 1e6)
-# plt.yscale('linear')
+plt.xlim(1, 10)
+plt.ylabel('Gain / Overvoltage (1/V)')
+plt.ylim(0.9e5, 1.06e5)
 plt.title('XA Calibration Data', fontsize="xx-large")
 plt.legend()
 
@@ -89,8 +99,8 @@ if args.exclusive:
 # Step 5: Save the plot
 if not os.path.exists('images'):
     os.makedirs('images')
-plt.savefig(f'images/{title}.png', dpi=300)
+plt.savefig(f'images/{title}_RATIO.png', dpi=300)
 # Step 6: Show the plot
 if args.debug:
-    print(f"Plot saved as 'images/{title}.png'")
+    print(f"Plot saved as 'images/{title}_RATIO.png'")
 plt.show()
