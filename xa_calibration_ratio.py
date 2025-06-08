@@ -14,7 +14,7 @@ def fitting_function(x, a, b):
 
 # Create -d flag to run this script with terminal output
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('-n', '--name', type=str, help='XA name', default="DF-XA")
+parser.add_argument('-n', '--name', type=str, help='XA name', default="ALL")
 parser.add_argument('-i', '--institution', type=list, help='Institution names', default=["Ciemat", "INFN Naples"])
 parser.add_argument('-c', '--channel', type=list, help='Channel numbers', default=[0,1])
 parser.add_argument('-e', '--exclusive', action='store_true', help='Include or exclude name in the plot')
@@ -68,18 +68,21 @@ for institution, channel in product(args.institution, args.channel):
         x = subset['OV'].values
         dx = 0.02 * subset['OV'].values
         y = subset['Gain'].values / subset['OV'].values
-        dy = subset['DGain'].values / subset['OV'].values
+        # Compute the error propagation for Gain/OV
+        dy = np.sqrt((subset['DGain'] / subset['OV'].values) ** 2 + (subset['Gain'] * dx / subset['OV'].values ** 2) ** 2)
         # Add scatter with error bars
         plt.errorbar(x, y, xerr=dx, yerr=dy, ls='none', mfc='w' if channel == 0 else f'C{idx}' if institution == "Ciemat" else f"C{idx+1}", color=f"C{idx}" if institution == "Ciemat" else f"C{idx+1}", marker='o', label=label)
+        # Add a horizontal line for the weighted mean of the Gain/OV
+        mean_y = np.average(y, weights=1/dy**2)
+        plt.axhline(mean_y, color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}", ls=':' if channel == 0 else '--', linewidth=2)
+        
         # Perform the fit
-        params, _ = curve_fit(fitting_function, x, y)
-
+        # params, _ = curve_fit(fitting_function, x, y)
         # Generate new x values for the fit line
-        x_new = np.linspace(1, 10, 90)
-        y_fit = fitting_function(x_new, *params)
-
+        # x_new = np.linspace(1, 10, 90)
+        # y_fit = fitting_function(x_new, *params)
         # Plot the fit line
-        plt.plot(x_new, y_fit, linewidth=2, ls=':' if channel == 0 else '--', color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}")
+        # plt.plot(x_new, y_fit, linewidth=2, ls=':' if channel == 0 else '--', color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}")
 
 dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 plt.ticklabel_format(axis='y', style='scientific', scilimits=(0,0))
