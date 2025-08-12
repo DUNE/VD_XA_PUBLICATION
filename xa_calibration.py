@@ -9,10 +9,11 @@ import dunestyle.matplotlib as dunestyle
 
 # Create -d flag to run this script with terminal output
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('-c', '--channel', type=list, help='Channel numbers', default=[0,1])
-parser.add_argument('-i', '--institution', type=list, help='Institution names', default=["Ciemat", "INFN Naples"])
-parser.add_argument('-n', '--name', type=str, help='XA name', default="ALL")
+parser.add_argument('-c', '--channel', type=int, help='Channel numbers', default=[0,1], nargs='+')
 parser.add_argument('-e', '--exclusive', action='store_true', help='Include or exclude name in the plot')
+parser.add_argument('-i', '--institution', type=str, help='Institution names', default=["Ciemat", "INFN Naples"], nargs='+')
+parser.add_argument('-n', '--name', type=str, help='XA name', default="ALL")
+parser.add_argument('-p', '--plot', action='store_true', help='Show plot')
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 args = parser.parse_args()
 
@@ -82,7 +83,7 @@ plt.legend()
 
 title = "XA_GAIN"
 if args.channel != [0, 1]:
-    title += f"_CH{'-'.join(args.channel)}"
+    title += f"_CH{'-'.join(str(args.channel))}"
 if args.exclusive:
     title += "_EXCLUSIVE"   
 
@@ -93,4 +94,6 @@ plt.savefig(f'images/{title}.png', dpi=300)
 # Step 6: Show the plot
 if args.debug:
     print(f"Plot saved as 'images/{title}.png'")
-plt.show()
+
+if args.plot:
+    plt.show()

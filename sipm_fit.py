@@ -11,6 +11,7 @@ import dunestyle.matplotlib as dunestyle
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('-i', '--institution', type=str, help='Institution names', default="ciemat")
 parser.add_argument('-c', '--channel', type=str, nargs='+', help='Channel numbers', default=["4"])
+parser.add_argument('-p', '--plot', action='store_true', help='Show plot')
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 args = parser.parse_args()
 
@@ -87,4 +88,6 @@ plt.savefig(f'images/SiPM_{fit_type.upper()}_FIT.png', dpi=300)
 # Step 6: Show the plot
 if args.debug:
     print(f"Plot saved as 'images/SiPM_{fit_type.upper()}_FIT.png'")
-plt.show()
+
+if args.plot:
+    plt.show()

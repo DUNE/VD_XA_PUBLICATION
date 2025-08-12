@@ -20,7 +20,7 @@ args = parser.parse_args()
 
 # Step 1: Load data from YAML file
 for institution in args.institution:
-    with open(f'data/xa_{institution.split(" ")[-1].lower()}_pde.txt', 'r') as file:
+    with open(f'data/xa_{institution.split(" ")[-1].lower()}_pde_box.txt', 'r') as file:
         data = file.read()
         # Ignore lines that start with '#'
         data = '\n'.join(line for line in data.splitlines() if not line.startswith('#'))
@@ -42,7 +42,7 @@ for institution in args.institution:
     # Convert all columns except 'Name' to numeric
     for col in data.columns[1:]:
         data[col] = pd.to_numeric(data[col], errors='coerce')
-        if col == 'SET':
+        if col == 'BOX':
             data[col] = data[col].astype(int)
     if args.debug:
         print("Parsed data:")
@@ -65,63 +65,62 @@ for institution in args.institution:
         # find jdx where name is in selection['Name']
         jdx = selection['Name'].unique().tolist().index(name)
         subset = selection[(selection['Name'] == name) & (selection['OV'] == ov)]
-        x = subset['SET'].values
-        y = subset['VALUE'].values
+        x = subset['BOX'].values
+        y = 100*subset['TOTAL'].values
         
         # Add values to variation_dict that are not NaN
-        variation_dict[name] = np.concatenate((variation_dict[name], y))
+        variation_dict[name] = np.concatenate((variation_dict[name], (y - y[0]) / y[0]))
 
         marker = "v" if ov < 4.5 else "^" if ov > 4.5 else "o"
         if args.shift or len(args.OV) > 1:
             if ov < 4.5:
                 x = x - 0.1  # Adjust x for OV < 4.5
-                plt.scatter(x, y, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx)
+                plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx)
             elif ov > 4.5:
                 x = x + 0.1
-                plt.scatter(x, y, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx)
+                plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx)
             else:
                 x = x
-                plt.scatter(x, y, marker=marker, color=f"C{jdx}", label=f"{name}", zorder=len(selection['Name'].unique()) - jdx)
-        
+                plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx, label=f"{name}")
+
         else:
-            plt.scatter(x, y, marker=marker, color=f"C{jdx}", label=f"{name}", zorder=len(selection['Name'].unique()) - jdx)
+            plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", label=f"{name}", zorder=len(selection['Name'].unique()) - jdx)
 
     for jdx, key in enumerate(variation_dict):
         y = variation_dict[key]
         x = np.array([1, 2, 3] * (len(y) // 3))
+        # Reshape the arrays
+        x = np.asarray(x).reshape(-1, 3)
+        y = np.asarray(y).reshape(-1, 3)
         # Plot in sets of 3
-        for i in range(0, len(y), 3):
+        mean_x = []
+        mean_y = []
+        for i in range(0, len(y[0])):
             if args.debug:
-                print(f"STD for {key} at OV {ov}: {np.mean(y[i:i+3], where=~np.isnan(y[i:i+3])):.2f}%")
-            plt.axhline(y=np.mean(y[i:i+3], where=~np.isnan(y[i:i+3])), color=f"C{jdx}", ls='--', zorder=len(selection['Name'].unique()) - jdx)
+                print(f"STD for {key} at OV {ov}: {np.mean(y[:,i], where=~np.isnan(y[:,i])):.2f}%")
+            # Pick up the ith values of each set of 3
+            mean_x.append(np.mean(x[:, i]))
+            mean_y.append(np.mean(y[:, i], where=~np.isnan(y[:, i])))
+        plt.plot(mean_x, mean_y, color=f"C{jdx}", ls='--', zorder=len(selection['Name'].unique()) - jdx)
 
 dunestyle.Preliminary(x=0.02, fontsize="xx-large")
-plt.xlabel('SET')
+plt.xlabel('BOX')
 # Set x axis to integer
-plt.xlim(0.5, 3.5)
+plt.xlim(0.75, 3.25)
 plt.xticks([1, 2, 3])
 
-plt.ylabel(r'PDE (SET$_1$ - SET$_\text{i}$) / SET$_1$')
+plt.ylabel(r'PDE (BOX$_\text{i}$ - BOX$_1$) / BOX$_1$')
 
 # Set y axis to percentage
-plt.ylim(-0.12, 0.12)
+plt.ylim(-0.05, 0.16)
 plt.ticklabel_format(axis='y', style='sci', scilimits=(0, 0), useMathText=True)
 # Use less y ticks
 plt.yticks(np.arange(-0.05, 0.16, 0.05), [f'{int(100*x)}%' for x in np.arange(-0.05, 0.16, 0.05)])
 
-plt.title('XA PDE Divergence', fontsize="xx-large")
+plt.title('XA BOX Divergence', fontsize="xx-large")
 plt.legend(ncol=2, loc="lower center")
 
-
-# Add annotation for OV markers
-if len(args.OV) > 1:
-    # Add a legend for the OV markers
-    ov_markers = {'3.5': '▼', '4.5': '●', '7.0': '▲'}
-    for idx, (ov, marker) in enumerate(ov_markers.items()):
-        plt.annotate(f'{marker}: {ov} (V)', xy=(2.5, 0.05), xytext=(1.025 + 0.75*idx, 0.06), fontsize='x-large')
-
-
-title = "XA_PDE"
+title = "XA_BOX_PDE"
 if args.exclusive:
     title += "_EXCLUSIVE"   
 if len(args.OV) == 1:

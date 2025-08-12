@@ -18,6 +18,7 @@ parser.add_argument('-n', '--name', type=str, help='XA name', default="ALL")
 parser.add_argument('-i', '--institution', type=list, help='Institution names', default=["Ciemat", "INFN Naples"])
 parser.add_argument('-c', '--channel', type=list, help='Channel numbers', default=[0,1])
 parser.add_argument('-e', '--exclusive', action='store_true', help='Include or exclude name in the plot')
+parser.add_argument('-p', '--plot', action='store_true', help='Show plot')
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 args = parser.parse_args()
 
@@ -106,4 +107,6 @@ plt.savefig(f'images/{title}_RATIO.png', dpi=300)
 # Step 6: Show the plot
 if args.debug:
     print(f"Plot saved as 'images/{title}_RATIO.png'")
-plt.show()
+
+if args.plot:
+    plt.show()

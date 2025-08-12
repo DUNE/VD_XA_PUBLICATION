@@ -33,6 +33,7 @@ def fit_logarithmic_regression(x, y, w=None):
 
 # Create -d flag to run this script with terminal output
 parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('-p', '--plot', action='store_true', help='Show plot')
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 args = parser.parse_args()
 
@@ -111,5 +112,6 @@ dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 if not os.path.exists('images'):
     os.makedirs('images')
 plt.savefig('images/RESULT_COMBINED.png')
-plt.show()
 
+if args.plot:
+    plt.show()

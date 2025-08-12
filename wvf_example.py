@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('-r', '--run', type=int, required=False, help='Run number', default=1)
 parser.add_argument('-c', '--channel', type=int, required=False, help='Channel number', default=0)
 parser.add_argument('-e', '--event', type=int, required=False, help='Event number', default=1)
+parser.add_argument('-p', '--plot', action='store_true', help='Show plot')
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 args = parser.parse_args()
 
@@ -58,5 +59,6 @@ plt.savefig(f'images/WVF_RUN{args.run}_CH{args.channel}_EVENT{args.event}.png', 
 # Step 6: Show the plot
 if args.debug:
     print("Plot saved as 'images/WVF_RUN{args.run}_CH{args.channel}_EVENT{args.event}.png'")
-plt.show()
-# Step 7: Apply Dunestyle
+
+if args.plot:
+    plt.show()
