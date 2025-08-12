@@ -88,12 +88,7 @@ for institution in args.institution:
 
     for jdx, key in enumerate(variation_dict):
         y = variation_dict[key]
-        x = np.array([1, 2, 3] * (len(y) // 3))
-        # Plot in sets of 3
-        for i in range(0, len(y), 3):
-            if args.debug:
-                print(f"STD for {key} at OV {ov}: {np.mean(y[i:i+3], where=~np.isnan(y[i:i+3])):.2f}%")
-            plt.axhline(y=np.mean(y[i:i+3], where=~np.isnan(y[i:i+3])), color=f"C{jdx}", ls='--', zorder=len(selection['Name'].unique()) - jdx)
+        plt.axhline(y=np.mean(y, where=~np.isnan(y)), color=f"C{jdx}", ls='--', zorder=len(selection['Name'].unique()) - jdx)
 
 dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 plt.xlabel('SET')

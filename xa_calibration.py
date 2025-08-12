@@ -65,11 +65,14 @@ for institution, channel in product(args.institution, args.channel):
         dx = 0.02 * subset['OV'].values
         y = subset['Gain'].values
         dy = subset['DGain'].values
-        plt.errorbar(x, y, xerr=dx, yerr=dy, ls='none', mfc='w' if channel == 0 else f'C{idx}' if institution == "Ciemat" else f"C{idx+1}", color=f"C{idx}" if institution == "Ciemat" else f"C{idx+1}", marker='o', label=label)
-
         x_new = np.linspace(0, 10, 100)
         y_new = interpolate.interp1d(x, y, kind='linear', bounds_error=False, fill_value='extrapolate')
-        plt.plot(x_new, y_new(x_new), ls=':' if channel == 0 else '--', color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}")
+        if len(args.channel) > 1:
+            plt.errorbar(x, y, xerr=dx, yerr=dy, ls='none', mfc='w' if channel == 0 else f'C{idx}' if institution == "Ciemat" else f"C{idx+1}", color=f"C{idx}" if institution == "Ciemat" else f"C{idx+1}", marker='o', label=label, zorder = len(args.name) - idx)
+            plt.plot(x_new, y_new(x_new), ls=':' if channel == 0 else '--', color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}", zorder = len(args.name) - idx)
+        else:
+            plt.errorbar(x, y, xerr=dx, yerr=dy, ls='none', color=f"C{idx}" if institution == "Ciemat" else f"C{idx+1}", marker='o', label=label, zorder = len(args.name) - idx)
+            plt.plot(x_new, y_new(x_new), ls='--', color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}", zorder = len(args.name) - idx)
 
 dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 plt.xlabel('Overvoltage (V)')
@@ -78,12 +81,16 @@ plt.xlim(0, 10)
 plt.ylabel('Gain')
 plt.ylim(0, 1e6)
 # plt.yscale('linear')
-plt.title('XA Calibration Data', fontsize="xx-large")
+if len(args.channel) == 1:
+    plt.title(f'XA Calibration Data (CH {args.channel[0]})', fontsize="xx-large")
+else:
+    plt.title('XA Calibration Data', fontsize="xx-large")
 plt.legend()
 
 title = "XA_GAIN"
-if args.channel != [0, 1]:
-    title += f"_CH{'-'.join(str(args.channel))}"
+if len(args.channel) == 1:
+    title += f"_CH{args.channel[0]}"
+
 if args.exclusive:
     title += "_EXCLUSIVE"   
 

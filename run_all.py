@@ -26,8 +26,6 @@ if __name__ == "__main__":
         "xa_calibration_ratio.py",
         "xa_calibration_ratio.py -e -c 0",
         "xa_calibration_ratio.py -e -c 1",
-        "result_comparison.py",
-        "result_combined.py",
         "xa_pde_variation.py -e",
         "xa_pde_variation.py -e -o 3.5",
         "xa_pde_variation.py -e -o 4.5",
@@ -35,7 +33,9 @@ if __name__ == "__main__":
         "xa_box_variation.py -e",
         "xa_box_variation.py -e -o 3.5",
         "xa_box_variation.py -e -o 4.5",
-        "xa_box_variation.py -e -o 7.0"
+        "xa_box_variation.py -e -o 7.0",
+        "result_comparison.py",
+        "result_combined.py"
     ]
 
     all_results = []
