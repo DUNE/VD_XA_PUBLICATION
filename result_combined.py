@@ -104,7 +104,7 @@ plt.ylabel('PDE (%)')
 plt.xlim(0, max(df["OV"]) + 1)
 plt.ylim(0, 6)
 
-plt.title('Comparison of PDE Values', fontsize='xx-large')
+plt.title('Combination of PDE Values', fontsize='xx-large')
 plt.legend()
 
 dunestyle.Preliminary(x=0.02, fontsize="xx-large")

@@ -1,0 +1,5 @@
+# Both Channels			
+Name    OV	Gain	    DGain	S/N	    DS/N
+ALL	    3.5	3.516E+05	4E+02	3.28	0.01
+ALL	    4.5	4.485E+05	7E+02	4.52	0.02
+ALL	    7.0	6.888E+05	8E+02	5.98	0.03

@@ -9,7 +9,7 @@ import dunestyle.matplotlib as dunestyle
 
 # Create -d flag to run this script with terminal output
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('-c', '--channel', type=int, help='Channel numbers', default=[0,1], nargs='+')
+parser.add_argument('-c', '--channel', type=int, help='Channel numbers', default=["ALL"], nargs='+', required=False)
 parser.add_argument('-e', '--exclusive', action='store_true', help='Include or exclude name in the plot')
 parser.add_argument('-i', '--institution', type=str, help='Institution names', default=["Ciemat", "INFN Naples"], nargs='+')
 parser.add_argument('-n', '--name', type=str, help='XA name', default="ALL")
@@ -19,7 +19,10 @@ args = parser.parse_args()
 
 # Step 1: Load data from YAML file
 for institution, channel in product(args.institution, args.channel):
-    with open(f'data/xa_ch{channel}_{institution.split(" ")[-1].lower()}_calibration.txt', 'r') as file:
+    path = f'data/xa_ch{channel}_{institution.split(" ")[-1].lower()}_calibration.txt'
+    if channel not in [0, 1]:
+        path = f'data/xa_{institution.split(" ")[-1].lower()}_calibration.txt'
+    with open(path, 'r') as file:
         data = file.read()
         # Ignore lines that start with '#'
         data = '\n'.join(line for line in data.splitlines() if not line.startswith('#'))
@@ -55,10 +58,13 @@ for institution, channel in product(args.institution, args.channel):
             print(f"No data found for {args.name} in {institution} channel {channel}. Skipping...")
         continue
     
-    label=f"{institution} CH {channel}"
     for idx, name in enumerate(selection['Name'].unique()):
+        label=f"{institution}"
+        if channel in [0, 1]:
+            label += f" CH {channel}"
+
         if len(selection['Name'].unique()) > 1:
-            label = f"{institution} {name}"
+            label += f" {name}"
         
         subset = selection[selection['Name'] == name]
         x = subset['OV'].values
@@ -67,6 +73,7 @@ for institution, channel in product(args.institution, args.channel):
         dy = subset['DGain'].values
         x_new = np.linspace(0, 10, 100)
         y_new = interpolate.interp1d(x, y, kind='linear', bounds_error=False, fill_value='extrapolate')
+        
         if len(args.channel) > 1:
             plt.errorbar(x, y, xerr=dx, yerr=dy, ls='none', mfc='w' if channel == 0 else f'C{idx}' if institution == "Ciemat" else f"C{idx+1}", color=f"C{idx}" if institution == "Ciemat" else f"C{idx+1}", marker='o', label=label, zorder = len(args.name) - idx)
             plt.plot(x_new, y_new(x_new), ls=':' if channel == 0 else '--', color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}", zorder = len(args.name) - idx)
@@ -81,11 +88,13 @@ plt.xlim(0, 10)
 plt.ylabel('Gain')
 plt.ylim(0, 1e6)
 # plt.yscale('linear')
-if len(args.channel) == 1:
+if len(args.channel) == 1 and args.channel[0] in [0, 1]:
     plt.title(f'XA Calibration Data (CH {args.channel[0]})', fontsize="xx-large")
 else:
     plt.title('XA Calibration Data', fontsize="xx-large")
 plt.legend()
+# Place the legend in the lower right corner
+plt.legend(loc='lower right')
 
 title = "XA_GAIN"
 if len(args.channel) == 1:
