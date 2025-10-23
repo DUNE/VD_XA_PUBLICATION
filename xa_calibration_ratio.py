@@ -60,10 +60,10 @@ for institution, channel in product(args.institution, args.channel):
             print(f"No data found for {args.name} in {institution} channel {channel}. Skipping...")
         continue
     
-    label=f"{institution} CH {channel}"
+    label=f"{institution}"
     for idx, name in enumerate(selection['Name'].unique()):
         if len(selection['Name'].unique()) > 1:
-            label = f"{institution} {name}"
+            label = f"{name}"
         
         subset = data[data['Name'] == name]
         x = subset['OV'].values
@@ -85,14 +85,14 @@ for institution, channel in product(args.institution, args.channel):
         # Plot the fit line
         # plt.plot(x_new, y_fit, linewidth=2, ls=':' if channel == 0 else '--', color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}")
 
-dunestyle.Preliminary(x=0.02, fontsize="xx-large")
+# dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 plt.ticklabel_format(axis='y', style='scientific', scilimits=(0,0))
 plt.xlabel('Overvoltage (V)')
 plt.xlim(1, 10)
 plt.ylabel('Gain / Overvoltage (1/V)')
 plt.ylim(0.9e5, 1.06e5)
 plt.title('XA Calibration Data', fontsize="xx-large")
-plt.legend()
+plt.legend(ncol=2, loc="lower center")
 
 title = "XA_GAIN"
 if args.channel != [0, 1]:

@@ -107,10 +107,11 @@ plt.ylim(0, 6)
 plt.title('Combination of PDE Values', fontsize='xx-large')
 plt.legend()
 
-dunestyle.Preliminary(x=0.02, fontsize="xx-large")
+# dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 # Create images directory if it doesn't exist
 if not os.path.exists('images'):
     os.makedirs('images')
+plt.tight_layout()
 plt.savefig('images/RESULT_COMBINED.png')
 
 if args.plot:

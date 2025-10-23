@@ -31,10 +31,18 @@ if __name__ == "__main__":
         "xa_pde_variation.py -e -o 3.5",
         "xa_pde_variation.py -e -o 4.5",
         "xa_pde_variation.py -e -o 7.0",
+        "xa_box_variation.py",
+        "xa_box_variation.py -o 3.5",
+        "xa_box_variation.py -o 4.5",
+        "xa_box_variation.py -o 7.0",
         "xa_box_variation.py -e",
         "xa_box_variation.py -e -o 3.5",
         "xa_box_variation.py -e -o 4.5",
         "xa_box_variation.py -e -o 7.0",
+        "xa_box_variation_ratio.py -e",
+        "xa_box_variation_ratio.py -e -o 3.5",
+        "xa_box_variation_ratio.py -e -o 4.5",
+        "xa_box_variation_ratio.py -e -o 7.0",
         "result_comparison.py",
         "result_combined.py"
     ]

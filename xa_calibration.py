@@ -81,7 +81,7 @@ for institution, channel in product(args.institution, args.channel):
             plt.errorbar(x, y, xerr=dx, yerr=dy, ls='none', color=f"C{idx}" if institution == "Ciemat" else f"C{idx+1}", marker='o', label=label, zorder = len(args.name) - idx)
             plt.plot(x_new, y_new(x_new), ls='--', color=f'C{idx}' if institution == "Ciemat" else f"C{idx+1}", zorder = len(args.name) - idx)
 
-dunestyle.Preliminary(x=0.02, fontsize="xx-large")
+# dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 plt.xlabel('Overvoltage (V)')
 plt.xlim(0, 10)
 # plt.xscale('log')
@@ -89,9 +89,9 @@ plt.ylabel('Gain')
 plt.ylim(0, 1e6)
 # plt.yscale('linear')
 if len(args.channel) == 1 and args.channel[0] in [0, 1]:
-    plt.title(f'XA Calibration Data (CH {args.channel[0]})', fontsize="xx-large")
+    plt.title(f'XA Calibration (CH {args.channel[0]})', fontsize="xx-large")
 else:
-    plt.title('XA Calibration Data', fontsize="xx-large")
+    plt.title('XA Calibration', fontsize="xx-large")
 plt.legend()
 # Place the legend in the lower right corner
 plt.legend(loc='lower right')

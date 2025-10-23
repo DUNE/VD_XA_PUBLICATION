@@ -54,14 +54,12 @@ for institution in args.institution:
         selection = data[~data['Name'].str.endswith(('_1', '_2'))]
     else:
         selection = data[data['Name'] == args.name]
-    
+
     if selection.empty:
         if args.debug:
             print(f"No data found for {args.name} in {institution}. Skipping...")
         continue
     
-    ymin = np.inf
-    ymax = -np.inf
     variation_dict = {}
     for idx, (name, ov) in enumerate(product(selection['Name'].unique(), args.OV)):
         if name not in variation_dict:
@@ -70,47 +68,44 @@ for institution in args.institution:
         jdx = selection['Name'].unique().tolist().index(name)
         subset = selection[(selection['Name'] == name) & (selection['OV'] == ov)]
         x = subset['BOX'].values
-        y = subset['TOTAL'].values
-        if np.min(y) < ymin:
-            ymin = np.min(y)
-        if np.max(y) > ymax:
-            ymax = np.max(y)
+        y = 100*subset['TOTAL'].values
         
         # Add values to variation_dict that are not NaN
-        variation_dict[name] = np.concatenate((variation_dict[name], y))
+        variation_dict[name] = np.concatenate((variation_dict[name], (y - y[0]) / y[0]))
 
         marker = "v" if ov < 4.5 else "^" if ov > 4.5 else "o"
-        error = 0.09 * y  # Calculate 9% error
-        if args.shift:
+        if args.shift or len(args.OV) > 1:
             if ov < 4.5:
-                x = x - 0.1  # Adjust x for OV < 4.5
-                plt.errorbar(x, y, yerr=error, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx, fmt='o')
+                if args.shift:
+                    x = x - 0.1  # Adjust x for OV < 4.5
+                plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx)
             elif ov > 4.5:
-                x = x + 0.1
-                plt.errorbar(x, y, yerr=error, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx, fmt='o')
+                if args.shift:
+                    x = x + 0.1
+                plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx)
             else:
                 x = x
-                plt.errorbar(x, y, yerr=error, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx, label=f"{name}", fmt='o')
+                plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx, label=f"{name}")
 
         else:
-            plt.errorbar(x, y, yerr=error, marker=None, color=f"C{idx}", label=f"{name}" if idx == 0 else None, zorder=len(selection['Name'].unique()) - jdx, fmt='o')
+            plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", label=f"{name}", zorder=len(selection['Name'].unique()) - jdx)
 
     for jdx, key in enumerate(variation_dict):
         y = variation_dict[key]
+        x = np.array([1, 2, 3] * (len(y) // 3))
+        # Reshape the arrays
+        x = np.asarray(x).reshape(-1, 3)
         y = np.asarray(y).reshape(-1, 3)
-        y[:,1] = 2*y[:,1] # Double the values for the second box for proper weighting
-
         # Plot in sets of 3
-        color = f"C{jdx}"
-        if args.exclusive == False:
-            color = "red"
-
-        for idx, i in enumerate(y):
-            if idx == 0:
-                plt.axhline(np.sum(i)/4, color=color, ls='--', zorder=len(selection['Name'].unique()) - jdx, label=f"{key} Average")
-            else:
-                plt.axhline(np.sum(i)/4, color=color, ls='--', zorder=len(selection['Name'].unique()) - jdx)
-            plt.fill_between([0.5,3.5], np.sum(i)/4*0.91, np.sum(i)/4*1.09, color=color, alpha=0.2, edgecolor='none')
+        mean_x = []
+        mean_y = []
+        for i in range(0, len(y[0])):
+            if args.debug:
+                print(f"STD for {key} at OV {ov}: {np.mean(y[:,i], where=~np.isnan(y[:,i])):.2f}%")
+            # Pick up the ith values of each set of 3
+            mean_x.append(np.mean(x[:, i]))
+            mean_y.append(np.mean(y[:, i], where=~np.isnan(y[:, i])))
+        plt.plot(mean_x, mean_y, color=f"C{jdx}", ls='--', zorder=len(selection['Name'].unique()) - jdx)
 
 # dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 plt.xlabel('BOX')
@@ -118,28 +113,20 @@ plt.xlabel('BOX')
 plt.xlim(0.75, 3.25)
 plt.xticks([1, 2, 3])
 
-plt.ylabel(f'PDE')
+plt.ylabel(r'PDE (BOX$_\text{i}$ - BOX$_1$) / BOX$_1$')
 
 # Set y axis to percentage
-plt.ylim(ymin - 0.01, ymax + 0.015)
+plt.ylim(-0.05, 0.16)
 plt.ticklabel_format(axis='y', style='sci', scilimits=(0, 0), useMathText=True)
 # Use less y ticks
-# plt.yticks(np.arange(ymin - 0.01, ymax + 0.015, 0.01), [f'{int(100*x)}%' for x in np.arange(ymin - 0.01, ymax + 0.015, 0.01)])
+# plt.yticks(np.arange(-0.05, 0.16, 0.05), [f'{int(100*x)}%' for x in np.arange(-0.05, 0.16, 0.05)])
 
 plt.legend(ncol=2, loc="lower center")
 
-# Add annotation for OV markers
-if len(args.OV) > 1:
-    # Add a legend for the OV markers
-    ov_markers = {'3.5': '▼', '4.5': '●', '7.0': '▲'}
-    for idx, (ov, marker) in enumerate(ov_markers.items()):
-        plt.annotate(f'{marker}: {ov} (V)', xy=(2.5, ymax), xytext=(1.025 + 0.75*idx, ymax+0.005), fontsize='x-large')
-
 file_title = "XA_BOX_PDE"
-plot_title = "XA PDE BOX Variation"
+plot_title = "XA PDE BOX Ratio"
 if args.exclusive:
     file_title += "_EXCLUSIVE"   
-
 if len(args.OV) == 1:
     file_title += f"_{args.OV[0]}V"
     plot_title += f" ({args.OV[0]} V)"
@@ -150,10 +137,10 @@ plt.title(plot_title, fontsize="xx-large")
 if not os.path.exists('images'):
     os.makedirs('images')
 plt.tight_layout()
-plt.savefig(f'images/{file_title}.png', dpi=300)
+plt.savefig(f'images/{file_title}_RATIO.png', dpi=300)
 # Step 6: Show the plot
 if args.debug:
-    print(f"Plot saved as 'images/{file_title}.png'")
+    print(f"Plot saved as 'images/{file_title}_RATIO.png'")
 
 if args.plot:
     plt.show()

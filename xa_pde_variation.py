@@ -74,10 +74,12 @@ for institution in args.institution:
         marker = "v" if ov < 4.5 else "^" if ov > 4.5 else "o"
         if args.shift or len(args.OV) > 1:
             if ov < 4.5:
-                x = x - 0.1  # Adjust x for OV < 4.5
+                if args.shift:
+                    x = x - 0.1  # Adjust x for OV < 4.5
                 plt.scatter(x, y, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx)
             elif ov > 4.5:
-                x = x + 0.1
+                if args.shift:
+                    x = x + 0.1
                 plt.scatter(x, y, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx)
             else:
                 x = x
@@ -90,7 +92,7 @@ for institution in args.institution:
         y = variation_dict[key]
         plt.axhline(y=np.mean(y, where=~np.isnan(y)), color=f"C{jdx}", ls='--', zorder=len(selection['Name'].unique()) - jdx)
 
-dunestyle.Preliminary(x=0.02, fontsize="xx-large")
+# dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 plt.xlabel('SET')
 # Set x axis to integer
 plt.xlim(0.5, 3.5)
@@ -102,7 +104,7 @@ plt.ylabel(r'PDE (SET$_1$ - SET$_\text{i}$) / SET$_1$')
 plt.ylim(-0.12, 0.12)
 plt.ticklabel_format(axis='y', style='sci', scilimits=(0, 0), useMathText=True)
 # Use less y ticks
-plt.yticks(np.arange(-0.05, 0.16, 0.05), [f'{int(100*x)}%' for x in np.arange(-0.05, 0.16, 0.05)])
+# plt.yticks(np.arange(-0.05, 0.16, 0.05), [f'{int(100*x)}%' for x in np.arange(-0.05, 0.16, 0.05)])
 
 plt.title('XA PDE Divergence', fontsize="xx-large")
 plt.legend(ncol=2, loc="lower center")
@@ -121,11 +123,12 @@ if args.exclusive:
     title += "_EXCLUSIVE"   
 if len(args.OV) == 1:
     title += f"_{args.OV[0]}V"
-    plt.title(f'XA BOX PDE Variation ({args.OV[0]} V)', fontsize="xx-large")
+    plt.title(f'XA PDE Divergence ({args.OV[0]} V)', fontsize="xx-large")
 
 # Step 5: Save the plot
 if not os.path.exists('images'):
     os.makedirs('images')
+plt.tight_layout()  # Adjust layout to prevent clipping of ylabel
 plt.savefig(f'images/{title}.png', dpi=300)
 # Step 6: Show the plot
 if args.debug:
