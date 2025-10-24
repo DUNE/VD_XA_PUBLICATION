@@ -67,18 +67,19 @@ y_fit = data['FIT'].values
 dy_fit = data['DFIT'].values
 x_new = np.linspace(np.min(x), np.max(x), 1000)
 # plt.plot(x, y, color="C0" if institution == "ciemat" else "C1", marker='o')
-plt.hist(x, weights=y, label=f"SiPM Data", color="C0" if args.institution == "ciemat" else "C1", edgecolor='black', bins=len(x), histtype='step', zorder=0)
+plt.hist(x, weights=y, label=f"Data", color="C0" if args.institution == "ciemat" else "C1", edgecolor='black', bins=len(x), histtype='step', zorder=0)
 
 y_new = interpolate.interp1d(x, y_fit, kind='cubic', bounds_error=False, fill_value='extrapolate')
 y_new_upper = interpolate.interp1d(x, y_fit + dy_fit, kind='cubic', bounds_error=False, fill_value='extrapolate')
 y_new_lower = interpolate.interp1d(x, y_fit - dy_fit, kind='cubic', bounds_error=False, fill_value='extrapolate')
-plt.plot(x_new, y_new(x_new), label=f"SiPM {fit_type} Fit", linewidth=2, ls=':' if args.channel == 0 else '--', color="red", zorder=1)
+plt.plot(x_new, y_new(x_new), label=f"Fit", linewidth=2, ls=':' if args.channel == 0 else '--', color="red", zorder=1)
 # Add error band
 plt.fill_between(x_new, y_new_lower(x_new), y_new_upper(x_new), color="red", alpha=0.2, edgecolor='none')
 
-plt.xlabel('#Photo Electrons (PE)')
+plt.xlabel('#Photoelectrons (PE)')
 plt.ylabel('Norm.')
-plt.title('Reference SiPM Fit', fontsize="xx-large")
+plt.title('Single Reference SiPM Fit' if fit_type == 'mc' else 'Combined Reference SiPM Fit',
+          fontsize="xx-large")
 plt.legend()
 
 # Step 5: Save the plot

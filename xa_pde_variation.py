@@ -111,7 +111,7 @@ plt.legend(ncol=2, loc="lower center")
 
 
 # Add annotation for OV markers
-if len(args.OV) > 1:
+if len(args.OV) > 1 and len(args.name) > 1:
     # Add a legend for the OV markers
     ov_markers = {'3.5': '▼', '4.5': '●', '7.0': '▲'}
     for idx, (ov, marker) in enumerate(ov_markers.items()):

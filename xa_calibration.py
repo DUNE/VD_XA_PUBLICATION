@@ -65,6 +65,9 @@ for institution, channel in product(args.institution, args.channel):
 
         if len(selection['Name'].unique()) > 1:
             label += f" {name}"
+
+        if len(selection['Name'].unique()) == 1 and len(args.institution) == 1:
+            label = "Data"
         
         subset = selection[selection['Name'] == name]
         x = subset['OV'].values

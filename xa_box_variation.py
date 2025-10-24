@@ -44,6 +44,8 @@ for institution in args.institution:
         data[col] = pd.to_numeric(data[col], errors='coerce')
         if col == 'BOX':
             data[col] = data[col].astype(int)
+        if col == 'TOTAL':
+            data[col] = 100*data[col]
     if args.debug:
         print("Parsed data:")
         print(data)
@@ -93,7 +95,7 @@ for institution in args.institution:
                 plt.errorbar(x, y, yerr=error, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx, label=f"{name}", fmt='o')
 
         else:
-            plt.errorbar(x, y, yerr=error, marker=None, color=f"C{idx}", label=f"{name}" if idx == 0 else None, zorder=len(selection['Name'].unique()) - jdx, fmt='o')
+            plt.errorbar(x, y, yerr=error, marker=None, color=f"C{idx}", label=f"OV: {ov}" if ~args.exclusive else f"{name}" if idx == 0 else None, zorder=len(selection['Name'].unique()) - jdx, fmt='o')
 
     for jdx, key in enumerate(variation_dict):
         y = variation_dict[key]
@@ -107,21 +109,21 @@ for institution in args.institution:
 
         for idx, i in enumerate(y):
             if idx == 0:
-                plt.axhline(np.sum(i)/4, color=color, ls='--', zorder=len(selection['Name'].unique()) - jdx, label=f"{key} Average")
+                plt.axhline(np.sum(i)/4, color=color, ls='--', zorder=len(selection['Name'].unique()) - jdx, label=f"{key} Average" if args.exclusive else "Average")
             else:
                 plt.axhline(np.sum(i)/4, color=color, ls='--', zorder=len(selection['Name'].unique()) - jdx)
             plt.fill_between([0.5,3.5], np.sum(i)/4*0.91, np.sum(i)/4*1.09, color=color, alpha=0.2, edgecolor='none')
 
 # dunestyle.Preliminary(x=0.02, fontsize="xx-large")
-plt.xlabel('BOX')
+plt.xlabel('BOX Position')
 # Set x axis to integer
 plt.xlim(0.75, 3.25)
 plt.xticks([1, 2, 3])
 
-plt.ylabel(f'PDE')
+plt.ylabel(f'PDE (%)')
 
 # Set y axis to percentage
-plt.ylim(ymin - 0.01, ymax + 0.015)
+plt.ylim(ymin - 1, ymax + 1.5 if args.exclusive else ymax + 1)
 plt.ticklabel_format(axis='y', style='sci', scilimits=(0, 0), useMathText=True)
 # Use less y ticks
 # plt.yticks(np.arange(ymin - 0.01, ymax + 0.015, 0.01), [f'{int(100*x)}%' for x in np.arange(ymin - 0.01, ymax + 0.015, 0.01)])
@@ -129,11 +131,11 @@ plt.ticklabel_format(axis='y', style='sci', scilimits=(0, 0), useMathText=True)
 plt.legend(ncol=2, loc="lower center")
 
 # Add annotation for OV markers
-if len(args.OV) > 1:
+if len(args.OV) > 1 and args.exclusive:
     # Add a legend for the OV markers
     ov_markers = {'3.5': '▼', '4.5': '●', '7.0': '▲'}
     for idx, (ov, marker) in enumerate(ov_markers.items()):
-        plt.annotate(f'{marker}: {ov} (V)', xy=(2.5, ymax), xytext=(1.025 + 0.75*idx, ymax+0.005), fontsize='x-large')
+        plt.annotate(f'{marker}: {ov} (V)', xy=(2.5, ymax+1), xytext=(1.025 + 0.75*idx, ymax+0.5), fontsize='x-large')
 
 file_title = "XA_BOX_PDE"
 plot_title = "XA PDE BOX Variation"
