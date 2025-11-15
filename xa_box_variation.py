@@ -44,7 +44,7 @@ for institution in args.institution:
         data[col] = pd.to_numeric(data[col], errors='coerce')
         if col == 'BOX':
             data[col] = data[col].astype(int)
-        if col == 'TOTAL':
+        if col in ['TOTAL', 'ERROR']:
             data[col] = 100*data[col]
     if args.debug:
         print("Parsed data:")
@@ -65,14 +65,17 @@ for institution in args.institution:
     ymin = np.inf
     ymax = -np.inf
     variation_dict = {}
+    error_dict = {}
     for idx, (name, ov) in enumerate(product(selection['Name'].unique(), args.OV)):
         if name not in variation_dict:
             variation_dict[name] = np.array([])
+            error_dict[name] = np.array([])
         # find jdx where name is in selection['Name']
         jdx = selection['Name'].unique().tolist().index(name)
         subset = selection[(selection['Name'] == name) & (selection['OV'] == ov)]
         x = subset['BOX'].values
         y = subset['TOTAL'].values
+        error = subset['ERROR'].values
         if np.min(y) < ymin:
             ymin = np.min(y)
         if np.max(y) > ymax:
@@ -80,9 +83,9 @@ for institution in args.institution:
         
         # Add values to variation_dict that are not NaN
         variation_dict[name] = np.concatenate((variation_dict[name], y))
-
+        error_dict[name] = np.concatenate((error_dict[name], error))
         marker = "v" if ov < 4.5 else "^" if ov > 4.5 else "o"
-        error = 0.09 * y  # Calculate 9% error
+
         if args.shift:
             if ov < 4.5:
                 x = x - 0.1  # Adjust x for OV < 4.5
@@ -99,8 +102,11 @@ for institution in args.institution:
 
     for jdx, key in enumerate(variation_dict):
         y = variation_dict[key]
+        error = error_dict[key]
         y = np.asarray(y).reshape(-1, 3)
+        error = np.asarray(error).reshape(-1, 3)
         y[:,1] = 2*y[:,1] # Double the values for the second box for proper weighting
+        error[:,1] = 2*error[:,1] # Double the errors for the second box for proper weighting
 
         # Plot in sets of 3
         color = f"C{jdx}"
@@ -112,7 +118,8 @@ for institution in args.institution:
                 plt.axhline(np.sum(i)/4, color=color, ls='--', zorder=len(selection['Name'].unique()) - jdx, label=f"{key} Average" if args.exclusive else "Average")
             else:
                 plt.axhline(np.sum(i)/4, color=color, ls='--', zorder=len(selection['Name'].unique()) - jdx)
-            plt.fill_between([0.5,3.5], np.sum(i)/4*0.91, np.sum(i)/4*1.09, color=color, alpha=0.2, edgecolor='none')
+            
+            plt.fill_between([0.5,3.5], np.sum(i)/4-np.average(error), np.sum(i)/4+np.average(error), color=color, alpha=0.2, edgecolor='none')
 
 # dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 plt.xlabel('BOX Position')
