@@ -1,8 +1,10 @@
-import os
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import dunestyle.matplotlib as dunestyle
+from _bootstrap import ensure_src_path
+ensure_src_path()
+from lib.plot_style import new_figure, apply_common_margins, get_output_path, suptitle, LEGEND_FONTSIZE
 
 # Create -d flag to run this script with terminal output
 parser = argparse.ArgumentParser(description='Process some integers.')
@@ -10,8 +12,12 @@ parser.add_argument('-r', '--run', type=int, required=False, help='Run number', 
 parser.add_argument('-c', '--channel', type=int, required=False, help='Channel number', default=0)
 parser.add_argument('-e', '--event', type=int, required=False, help='Event number', default=1)
 parser.add_argument('-p', '--plot', action='store_true', help='Show plot')
+parser.add_argument('-sf', '--subfolder', type=str, default=None, help='Save the plot to a subfolder within the export path')
+parser.add_argument('-o', '--output-dir', type=str, default='images', help='Base directory to save the plot into (default: images)')
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 args = parser.parse_args()
+
+new_figure()
 
 # Step 1: Load data from YAML file
 with open(f'data/run{args.run}_ch{args.channel}_event{args.event}.txt', 'r') as file:
@@ -46,19 +52,19 @@ plt.axhline(y=-pretrigger_STD, linestyle='--', color='C2', zorder=1)
 # plt.fill_between(x, -pretrigger_STD, pretrigger_STD, color='C2', alpha=0.5, label='Baseline STD', zorder=2, edgecolor='none')  # Draw std as shaded area with transparent external lines
 # Draw std as shaded area
 
-plt.title('XA Waveform Example', fontsize='xx-large')
+suptitle('XA Waveform Example', fontsize='xx-large')
 plt.xlabel('Time (us)')
 plt.xlim(0, 12)
 plt.ylabel('Amplitude (ADC)')
-plt.legend()
+plt.legend(fontsize=LEGEND_FONTSIZE, frameon=False)
 
 # Step 5: Save the plot
-if not os.path.exists('images'):
-    os.makedirs('images')
-plt.savefig(f'images/WVF_RUN{args.run}_CH{args.channel}_EVENT{args.event}.png', dpi=300)
+apply_common_margins()
+out_path = get_output_path(f'WVF_RUN{args.run}_CH{args.channel}_EVENT{args.event}.png', args.subfolder, args.output_dir)
+plt.savefig(out_path, dpi=300)
 # Step 6: Show the plot
 if args.debug:
-    print("Plot saved as 'images/WVF_RUN{args.run}_CH{args.channel}_EVENT{args.event}.png'")
+    print(f"Plot saved as '{out_path}'")
 
 if args.plot:
     plt.show()

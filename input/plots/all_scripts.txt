@@ -1,0 +1,43 @@
+# Full plot batch: every macro invocation run_all.py knows how to produce.
+# One command per line (relative to the repo root, no leading "python").
+# Blank lines and lines starting with '#' are ignored.
+
+transmittance.py
+wvf_example.py
+sipm_fit.py -c 4
+sipm_fit.py -c 4 5
+
+xa_calibration.py -c 0 1
+xa_calibration.py -i Ciemat -n ALL -c 0 1 -ls - -f
+xa_calibration.py -i Ciemat -n ALL -e -c 0 -f
+xa_calibration.py -i Ciemat -n ALL -e -c 1 -f
+xa_calibration.py -i Ciemat
+xa_calibration_ratio.py
+xa_calibration_ratio.py -e -c 0
+xa_calibration_ratio.py -e -c 1
+
+xa_pde_variation.py -e
+xa_pde_variation.py -e -o 3.5
+xa_pde_variation.py -e -o 4.5
+xa_pde_variation.py -e -o 7.0
+xa_pde_variation.py -i Ciemat -n DF-XA_2 -s
+
+xa_box_variation.py
+xa_box_variation.py -o 3.5
+xa_box_variation.py -o 4.5
+xa_box_variation.py -o 7.0
+xa_box_variation.py -e
+xa_box_variation.py -e -o 3.5
+xa_box_variation.py -e -o 4.5
+xa_box_variation.py -e -o 7.0
+xa_box_variation_ratio.py -e
+xa_box_variation_ratio.py -e -o 3.5
+xa_box_variation_ratio.py -e -o 4.5
+xa_box_variation_ratio.py -e -o 7.0
+
+result_comparison.py -i CIEMAT,INFN
+result_comparison.py -i CIEMAT,CIEMAT_SIM
+result_combined.py -i CIEMAT,INFN
+result_combined.py -i CIEMAT,CIEMAT_SIM
+result_summary_comparison.py
+result_summary_comparison.py -m

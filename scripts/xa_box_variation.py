@@ -1,4 +1,3 @@
-import os
 import argparse
 import numpy as np
 import pandas as pd
@@ -6,6 +5,9 @@ from itertools import product
 from scipy import interpolate
 import matplotlib.pyplot as plt
 import dunestyle.matplotlib as dunestyle
+from _bootstrap import ensure_src_path
+ensure_src_path()
+from lib.plot_style import new_figure, apply_common_margins, get_output_path, suptitle, TITLE_FONTSIZE, LEGEND_FONTSIZE
 
 # Create -d flag to run this script with terminal output
 parser = argparse.ArgumentParser(description='Process some integers.')
@@ -15,8 +17,24 @@ parser.add_argument('-i', '--institution', type=str, help='Institution names', d
 parser.add_argument('-n', '--name', type=str, help='XA name', default="DF-XA")
 parser.add_argument('-o', '--OV', type=float, help='Channel numbers', default=[3.5,4.5,7.0], nargs='+')
 parser.add_argument('-p', '--plot', action='store_true', help='Show plot')
+parser.add_argument('-sf', '--subfolder', type=str, default=None, help='Save the plot to a subfolder within the export path')
+parser.add_argument('-od', '--output-dir', type=str, default='images', help='Base directory to save the plot into (default: images)')
 parser.add_argument('-s', '--shift', action='store_true', help='Enable marker shift')
 args = parser.parse_args()
+
+new_figure()
+
+
+def get_offsets(total):
+    if total <= 1:
+        return np.array([0.0])
+    if total == 2:
+        return np.array([-0.1, 0.1])
+    return np.linspace(-0.1, 0.1, total)
+
+
+ymin = np.inf
+ymax = -np.inf
 
 # Step 1: Load data from YAML file
 for institution in args.institution:
@@ -62,10 +80,9 @@ for institution in args.institution:
             print(f"No data found for {args.name} in {institution}. Skipping...")
         continue
     
-    ymin = np.inf
-    ymax = -np.inf
     variation_dict = {}
     error_dict = {}
+    ov_offsets = dict(zip(args.OV, get_offsets(len(args.OV))))
     for idx, (name, ov) in enumerate(product(selection['Name'].unique(), args.OV)):
         if name not in variation_dict:
             variation_dict[name] = np.array([])
@@ -85,20 +102,22 @@ for institution in args.institution:
         variation_dict[name] = np.concatenate((variation_dict[name], y))
         error_dict[name] = np.concatenate((error_dict[name], error))
         marker = "v" if ov < 4.5 else "^" if ov > 4.5 else "o"
+        x_offset = ov_offsets.get(ov, 0.0) if (len(args.OV) > 1 or args.shift) else 0.0
+        x = x + x_offset
 
         if args.shift:
-            if ov < 4.5:
-                x = x - 0.1  # Adjust x for OV < 4.5
-                plt.errorbar(x, y, yerr=error, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx, fmt='o')
-            elif ov > 4.5:
-                x = x + 0.1
-                plt.errorbar(x, y, yerr=error, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx, fmt='o')
-            else:
-                x = x
-                plt.errorbar(x, y, yerr=error, marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx, label=f"{name}", fmt='o')
-
+            plt.errorbar(
+                x,
+                y,
+                yerr=error,
+                marker=marker,
+                color=f"C{jdx}",
+                zorder=len(selection['Name'].unique()) - jdx,
+                label=f"{name}" if ov == 4.5 else None,
+                fmt='o'
+            )
         else:
-            plt.errorbar(x, y, yerr=error, marker=None, color=f"C{idx}", label=f"OV: {ov}" if ~args.exclusive else f"{name}" if idx == 0 else None, zorder=len(selection['Name'].unique()) - jdx, fmt='o')
+            plt.errorbar(x, y, yerr=error, marker=None, color=f"C{idx}", label=None if args.exclusive else f"OV: {ov}", zorder=len(selection['Name'].unique()) - jdx, fmt='o')
 
     for jdx, key in enumerate(variation_dict):
         y = variation_dict[key]
@@ -119,7 +138,7 @@ for institution in args.institution:
             else:
                 plt.axhline(np.sum(i)/4, color=color, ls='--', zorder=len(selection['Name'].unique()) - jdx)
             
-            plt.fill_between([0.5,3.5], np.sum(i)/4-np.average(error), np.sum(i)/4+np.average(error), color=color, alpha=0.2, edgecolor='none')
+            # plt.fill_between([0.5,3.5], np.sum(i)/4-np.average(error), np.sum(i)/4+np.average(error), color=color, alpha=0.2, edgecolor='none')
 
 # dunestyle.Preliminary(x=0.02, fontsize="xx-large")
 plt.xlabel('BOX Position')
@@ -135,7 +154,7 @@ plt.ticklabel_format(axis='y', style='sci', scilimits=(0, 0), useMathText=True)
 # Use less y ticks
 # plt.yticks(np.arange(ymin - 0.01, ymax + 0.015, 0.01), [f'{int(100*x)}%' for x in np.arange(ymin - 0.01, ymax + 0.015, 0.01)])
 
-plt.legend(ncol=2, loc="lower center")
+plt.legend(ncol=2, loc="lower center", fontsize=LEGEND_FONTSIZE, frameon=False)
 
 # Add annotation for OV markers
 if len(args.OV) > 1 and args.exclusive:
@@ -153,16 +172,15 @@ if len(args.OV) == 1:
     file_title += f"_{args.OV[0]}V"
     plot_title += f" ({args.OV[0]} V)"
 
-plt.title(plot_title, fontsize="xx-large")
+suptitle(plot_title, fontsize=TITLE_FONTSIZE)
 
 # Step 5: Save the plot
-if not os.path.exists('images'):
-    os.makedirs('images')
-plt.tight_layout()
-plt.savefig(f'images/{file_title}.png', dpi=300)
+apply_common_margins()
+out_path = get_output_path(f'{file_title}.png', args.subfolder, args.output_dir)
+plt.savefig(out_path, dpi=300)
 # Step 6: Show the plot
 if args.debug:
-    print(f"Plot saved as 'images/{file_title}.png'")
+    print(f"Plot saved as '{out_path}'")
 
 if args.plot:
     plt.show()

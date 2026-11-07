@@ -1,0 +1,12 @@
+# SiPM/XA gain calibration plots.
+sipm_fit.py -c 4
+sipm_fit.py -c 4 5
+
+xa_calibration.py -c 0 1
+xa_calibration.py -i Ciemat -n ALL -c 0 1 -ls - -f
+xa_calibration.py -i Ciemat -n ALL -e -c 0 -f
+xa_calibration.py -i Ciemat -n ALL -e -c 1 -f
+xa_calibration.py -i Ciemat
+xa_calibration_ratio.py
+xa_calibration_ratio.py -e -c 0
+xa_calibration_ratio.py -e -c 1

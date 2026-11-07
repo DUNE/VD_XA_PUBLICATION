@@ -19,6 +19,9 @@ downloads/
 eggs/
 .eggs/
 lib/
+!src/lib/
+!src/lib/**
+src/lib/__pycache__/
 lib64/
 parts/
 sdist/

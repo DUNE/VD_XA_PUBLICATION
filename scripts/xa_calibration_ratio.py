@@ -1,4 +1,3 @@
-import os
 import argparse
 import numpy as np
 import pandas as pd
@@ -7,6 +6,9 @@ from scipy import interpolate
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 import dunestyle.matplotlib as dunestyle
+from _bootstrap import ensure_src_path
+ensure_src_path()
+from lib.plot_style import new_figure, apply_common_margins, get_output_path, suptitle, TITLE_FONTSIZE, LEGEND_FONTSIZE
 
 # Define a fitting function (e.g., linear)
 def fitting_function(x, a, b):
@@ -19,8 +21,12 @@ parser.add_argument('-i', '--institution', type=list, help='Institution names', 
 parser.add_argument('-c', '--channel', type=list, help='Channel numbers', default=[0,1])
 parser.add_argument('-e', '--exclusive', action='store_true', help='Include or exclude name in the plot')
 parser.add_argument('-p', '--plot', action='store_true', help='Show plot')
+parser.add_argument('-sf', '--subfolder', type=str, default=None, help='Save the plot to a subfolder within the export path')
+parser.add_argument('-o', '--output-dir', type=str, default='images', help='Base directory to save the plot into (default: images)')
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 args = parser.parse_args()
+
+new_figure()
 
 # Step 1: Load data from YAML file
 for institution, channel in product(args.institution, args.channel):
@@ -91,8 +97,8 @@ plt.xlabel('Overvoltage (V)')
 plt.xlim(1, 10)
 plt.ylabel('Gain / Overvoltage (1/V)')
 plt.ylim(0.9e5, 1.06e5)
-plt.title('XA Calibration Data', fontsize="xx-large")
-plt.legend(ncol=2, loc="lower center")
+suptitle('XA Calibration Data', fontsize=TITLE_FONTSIZE)
+plt.legend(ncol=2, loc="lower center", fontsize=LEGEND_FONTSIZE, frameon=False)
 
 title = "XA_GAIN"
 if args.channel != [0, 1]:
@@ -101,12 +107,12 @@ if args.exclusive:
     title += "_EXCLUSIVE"   
 
 # Step 5: Save the plot
-if not os.path.exists('images'):
-    os.makedirs('images')
-plt.savefig(f'images/{title}_RATIO.png', dpi=300)
+apply_common_margins()
+out_path = get_output_path(f'{title}_RATIO.png', args.subfolder, args.output_dir)
+plt.savefig(out_path, dpi=300)
 # Step 6: Show the plot
 if args.debug:
-    print(f"Plot saved as 'images/{title}_RATIO.png'")
+    print(f"Plot saved as '{out_path}'")
 
 if args.plot:
     plt.show()

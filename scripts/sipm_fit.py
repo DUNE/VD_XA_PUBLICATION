@@ -6,14 +6,21 @@ from itertools import product
 from scipy import interpolate
 import matplotlib.pyplot as plt
 import dunestyle.matplotlib as dunestyle
+from _bootstrap import ensure_src_path
+ensure_src_path()
+from lib.plot_style import new_figure, apply_common_margins, get_output_path, suptitle, LEGEND_FONTSIZE
 
 # Create -d flag to run this script with terminal output
 parser = argparse.ArgumentParser(description='Process some integers.')
 parser.add_argument('-i', '--institution', type=str, help='Institution names', default="ciemat")
 parser.add_argument('-c', '--channel', type=str, nargs='+', help='Channel numbers', default=["4"])
 parser.add_argument('-p', '--plot', action='store_true', help='Show plot')
+parser.add_argument('-sf', '--subfolder', type=str, default=None, help='Save the plot to a subfolder within the export path')
+parser.add_argument('-o', '--output-dir', type=str, default='images', help='Base directory to save the plot into (default: images)')
 parser.add_argument('-d', '--debug', action='store_true', help='Enable debug output')
 args = parser.parse_args()
+
+new_figure()
 
 # Step 1: Load data from YAML file
 with open(f'data/sipm_ch{"-".join(args.channel)}_{args.institution}_data.txt', 'r') as file:
@@ -78,17 +85,17 @@ plt.fill_between(x_new, y_new_lower(x_new), y_new_upper(x_new), color="red", alp
 
 plt.xlabel('#Photoelectrons (PE)')
 plt.ylabel('Norm.')
-plt.title('Single Reference SiPM Fit' if fit_type == 'mc' else 'Combined Reference SiPM Fit',
+suptitle('Single Reference SiPM Fit' if fit_type == 'mc' else 'Combined Reference SiPM Fit',
           fontsize="xx-large")
-plt.legend()
+plt.legend(fontsize=LEGEND_FONTSIZE, frameon=False)
 
 # Step 5: Save the plot
-if not os.path.exists('images'):
-    os.makedirs('images')
-plt.savefig(f'images/SiPM_{fit_type.upper()}_FIT.png', dpi=300)
+apply_common_margins()
+out_path = get_output_path(f'SiPM_{fit_type.upper()}_FIT.png', args.subfolder, args.output_dir)
+plt.savefig(out_path, dpi=300)
 # Step 6: Show the plot
 if args.debug:
-    print(f"Plot saved as 'images/SiPM_{fit_type.upper()}_FIT.png'")
+    print(f"Plot saved as '{out_path}'")
 
 if args.plot:
     plt.show()

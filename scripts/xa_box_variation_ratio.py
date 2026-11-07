@@ -1,4 +1,3 @@
-import os
 import argparse
 import numpy as np
 import pandas as pd
@@ -6,6 +5,9 @@ from itertools import product
 from scipy import interpolate
 import matplotlib.pyplot as plt
 import dunestyle.matplotlib as dunestyle
+from _bootstrap import ensure_src_path
+ensure_src_path()
+from lib.plot_style import new_figure, apply_common_margins, get_output_path, suptitle, TITLE_FONTSIZE, LEGEND_FONTSIZE
 
 # Create -d flag to run this script with terminal output
 parser = argparse.ArgumentParser(description='Process some integers.')
@@ -15,8 +17,20 @@ parser.add_argument('-i', '--institution', type=str, help='Institution names', d
 parser.add_argument('-n', '--name', type=str, help='XA name', default="DF-XA")
 parser.add_argument('-o', '--OV', type=float, help='Channel numbers', default=[3.5,4.5,7.0], nargs='+')
 parser.add_argument('-p', '--plot', action='store_true', help='Show plot')
+parser.add_argument('-sf', '--subfolder', type=str, default=None, help='Save the plot to a subfolder within the export path')
+parser.add_argument('-od', '--output-dir', type=str, default='images', help='Base directory to save the plot into (default: images)')
 parser.add_argument('-s', '--shift', action='store_true', help='Enable marker shift')
 args = parser.parse_args()
+
+new_figure()
+
+
+def get_offsets(total):
+    if total <= 1:
+        return np.array([0.0])
+    if total == 2:
+        return np.array([-0.1, 0.1])
+    return np.linspace(-0.1, 0.1, total)
 
 # Step 1: Load data from YAML file
 for institution in args.institution:
@@ -61,6 +75,7 @@ for institution in args.institution:
         continue
     
     variation_dict = {}
+    ov_offsets = dict(zip(args.OV, get_offsets(len(args.OV))))
     for idx, (name, ov) in enumerate(product(selection['Name'].unique(), args.OV)):
         if name not in variation_dict:
             variation_dict[name] = np.array([])
@@ -69,24 +84,22 @@ for institution in args.institution:
         subset = selection[(selection['Name'] == name) & (selection['OV'] == ov)]
         x = subset['BOX'].values
         y = 100*subset['TOTAL'].values
+        x_offset = ov_offsets.get(ov, 0.0) if (len(args.OV) > 1 or args.shift) else 0.0
+        x = x + x_offset
         
         # Add values to variation_dict that are not NaN
         variation_dict[name] = np.concatenate((variation_dict[name], (y - y[0]) / y[0]))
 
         marker = "v" if ov < 4.5 else "^" if ov > 4.5 else "o"
         if args.shift or len(args.OV) > 1:
-            if ov < 4.5:
-                if args.shift:
-                    x = x - 0.1  # Adjust x for OV < 4.5
-                plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx)
-            elif ov > 4.5:
-                if args.shift:
-                    x = x + 0.1
-                plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx)
-            else:
-                x = x
-                plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", zorder=len(selection['Name'].unique()) - jdx, label=f"{name}")
-
+            plt.scatter(
+                x,
+                (y - y[0]) / y[0],
+                marker=marker,
+                color=f"C{jdx}",
+                zorder=len(selection['Name'].unique()) - jdx,
+                label=f"{name}" if ov == 4.5 else None
+            )
         else:
             plt.scatter(x, (y - y[0]) / y[0], marker=marker, color=f"C{jdx}", label=f"{name}", zorder=len(selection['Name'].unique()) - jdx)
 
@@ -101,7 +114,7 @@ for institution in args.institution:
         mean_y = []
         for i in range(0, len(y[0])):
             if args.debug:
-                print(f"STD for {key} at OV {ov}: {np.mean(y[:,i], where=~np.isnan(y[:,i])):.2f}%")
+                print(f"STD for {key} at BOX {i+1}: {np.mean(y[:,i], where=~np.isnan(y[:,i])):.2f}%")
             # Pick up the ith values of each set of 3
             mean_x.append(np.mean(x[:, i]))
             mean_y.append(np.mean(y[:, i], where=~np.isnan(y[:, i])))
@@ -121,26 +134,25 @@ plt.ticklabel_format(axis='y', style='sci', scilimits=(0, 0), useMathText=True)
 # Use less y ticks
 # plt.yticks(np.arange(-0.05, 0.16, 0.05), [f'{int(100*x)}%' for x in np.arange(-0.05, 0.16, 0.05)])
 
-plt.legend(ncol=2, loc="lower center")
+plt.legend(ncol=2, loc="lower center", fontsize=LEGEND_FONTSIZE, frameon=False)
 
 file_title = "XA_BOX_PDE"
 plot_title = "XA PDE BOX Ratio"
 if args.exclusive:
-    file_title += "_EXCLUSIVE"   
+    file_title += "_EXCLUSIVE"
 if len(args.OV) == 1:
     file_title += f"_{args.OV[0]}V"
     plot_title += f" ({args.OV[0]} V)"
 
-plt.title(plot_title, fontsize="xx-large")
+suptitle(plot_title, fontsize=TITLE_FONTSIZE)
 
 # Step 5: Save the plot
-if not os.path.exists('images'):
-    os.makedirs('images')
-plt.tight_layout()
-plt.savefig(f'images/{file_title}_RATIO.png', dpi=300)
+apply_common_margins()
+out_path = get_output_path(f'{file_title}_RATIO.png', args.subfolder, args.output_dir)
+plt.savefig(out_path, dpi=300)
 # Step 6: Show the plot
 if args.debug:
-    print(f"Plot saved as 'images/{file_title}_RATIO.png'")
+    print(f"Plot saved as '{out_path}'")
 
 if args.plot:
     plt.show()

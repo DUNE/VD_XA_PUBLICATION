@@ -1,0 +1,22 @@
+# Figures actually referenced (\includegraphics, active or commented-out
+# placeholders) from /home/smanthey/Documents/pde_xa_vd_paper. Each line's
+# -sf value matches the destination subfolder under that repo's images/ dir;
+# run_all.py injects --output-dir from config/output_paths.json's "paper"
+# entry so these are written directly into the paper repo, not images/.
+
+wvf_example.py -sf CIEMAT
+xa_calibration.py -i Ciemat -n ALL -sf CIEMAT
+xa_calibration_ratio.py -e -c 1 -sf CIEMAT
+xa_pde_variation.py -e -o 4.5 -sf CIEMAT
+xa_box_variation.py -sf CIEMAT
+result_summary_comparison.py -m -sf CIEMAT
+
+transmittance.py -sf SIMULATION
+
+napoles_pde_position.py -sf NAPLES
+
+# Currently commented out (\iffalse / %) in the paper source but kept in
+# sync in case they're reinstated.
+sipm_fit.py -c 4 5 -sf CIEMAT
+sipm_fit.py -c 4 -sf CIEMAT
+xa_box_variation_ratio.py -e -o 4.5 -sf CIEMAT
